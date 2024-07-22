@@ -34,7 +34,7 @@
             width: 100%;
             z-index: 2;
             display: flex;
-            justify-content: space-between; /* Align content to the left and right */
+            justify-content: space-between;
             box-sizing: border-box;
         }
 
@@ -42,7 +42,7 @@
             font-size: 2rem;
             font-weight: bold;
             color: #ffffff;
-            margin-left: auto; /* Push the title to the right */
+            margin-left: auto;
         }
 
         nav {
@@ -56,7 +56,7 @@
             margin: 0;
             display: flex;
             align-items: center;
-            gap: 15px; /* Adjust gap as needed */
+            gap: 15px;
         }
 
         .nav-menu li {
@@ -95,7 +95,7 @@
             transform: translateY(10px);
             z-index: 1;
             display: flex;
-            justify-content: space-between; /* Align columns */
+            justify-content: space-between;
         }
 
         .nav-menu li:hover .dropdown-content {
@@ -129,61 +129,6 @@
 
         .dropdown-content a:hover {
             background: linear-gradient(135deg, #0033cc, #0066ff);
-        }
-
-        .hero {
-            text-align: center;
-            color: #ffffff;
-            padding: 60px 20px;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-        }
-
-        .hero button {
-            background: linear-gradient(135deg, #0033cc, #0066ff);
-            color: #ffffff;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s, transform 0.3s;
-        }
-
-        .hero button:hover {
-            background-color: #0056b3;
-            transform: scale(1.05);
-        }
-
-        .features {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 40px 20px;
-            gap: 20px;
-        }
-
-        .feature {
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            color: #e0e0e0;
-            text-align: center;
-            width: calc(33% - 40px);
-            box-sizing: border-box;
-        }
-
-        .feature h3 {
-            margin-bottom: 15px;
         }
 
         footer {
@@ -247,29 +192,136 @@
         </nav>
         <div class="site-title">PDFSUM</div>
     </header>
-    <div class="hero">
-        <h1>We Make PDF Easy</h1>
-        <p>All the tools you’ll need to be more productive and work smarter with documents.</p>
-        <button>Convert PDF Now</button>
-    </div>
-    <div class="features">
-        <div class="feature">
-            <h3>Convert PDFs</h3>
-            <p>Convert PDFs to editable Word documents and more.</p>
+    <main class="content">
+        <div class="container">
+            <div class="upload-container">
+                <h1>Convert Word to PDF</h1>
+                <p>Upload your Word document to convert it into a PDF file.</p>
+                <form id="upload-form" action="/processpdf" method="post" enctype="multipart/form-data">
+                    <div class="upload-wrapper">
+                        <input type="file" name="file" accept=".doc,.docx" required>
+                        <button type="submit">Upload and Convert</button>
+                    </div>
+                </form>
+                <div id="result" style="display:none;">
+                    <p>Your PDF is ready!</p>
+                    <a id="download-link" href="#" download class="download-button">Download Now</a>
+                </div>
+            </div>
         </div>
-        <div class="feature">
-            <h3>Merge & Split</h3>
-            <p>Combine multiple PDFs into one unified document or split them apart.</p>
-        </div>
-        <div class="feature">
-            <h3>Compress PDFs</h3>
-            <p>Reduce the size of your PDFs without losing quality.</p>
-        </div>
-    </div>
+    </main>
     <footer>
         <div class="footer-content">
             <p>&copy; 2024 PDFSUM. All rights reserved. <a href="#" style="color: #ffffff; text-decoration: none;">Privacy Notice</a> | <a href="#" style="color: #ffffff; text-decoration: none;">Terms & Conditions</a></p>
         </div>
     </footer>
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+
+            fetch('/processpdf', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.downloadUrl) {
+                    var resultDiv = document.getElementById('result');
+                    var downloadLink = document.getElementById('download-link');
+
+                    downloadLink.href = data.downloadUrl;
+                    downloadLink.textContent = 'Download Now';
+                    resultDiv.style.display = 'block';
+                } else {
+                    alert('Error: Unable to process the file.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error: Unable to process the file.');
+            });
+        });
+    </script>
+    <style>
+        .content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 120px); /* Adjust the height based on header and footer */
+            padding: 20px;
+            box-sizing: border-box;
+            transform: scale(1.15); /* Increase size by 15% */
+            transform-origin: top center; /* Adjust scaling origin to keep content centered */
+            margin-top: -10%; /* Move content up to reveal more footer */
+        }
+
+        .container {
+            max-width: 690px; /* Increase width to accommodate scaling */
+            width: 100%;
+            text-align: center;
+        }
+
+        .upload-container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 24px; /* Increase font size by 2 points */
+        }
+
+        p {
+            font-size: 18px; /* Increase font size by 2 points */
+        }
+
+        .upload-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="file"] {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #0066ff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px; /* Increase font size by 2 points */
+        }
+
+        button:hover {
+            background-color: #0044cc;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        .download-button {
+            background-color: #28a745;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+            font-size: 16px; /* Increase font size by 2 points */
+        }
+
+        .download-button:hover {
+            background-color: #218838;
+        }
+    </style>
 </body>
 </html>
