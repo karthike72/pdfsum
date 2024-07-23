@@ -202,9 +202,13 @@
                         <input type="file" name="file" accept=".doc,.docx" required>
                         <button type="submit">Upload and Convert</button>
                     </div>
+                    <div id="progress-container" style="display:none;">
+                        <div id="progress-bar" style="width: 0%;"></div>
+                        <div id="progress-text" style="text-align: center; color: #ffffff; font-weight: bold;">0%</div>
+                    </div>
                 </form>
                 <div id="result" style="display:none;">
-                    <p>Your PDF is ready!</p>
+                    <p>Your PDF is ready</p>
                     <a id="download-link" href="#" download class="download-button">Download Now</a>
                 </div>
             </div>
@@ -218,30 +222,63 @@
     <script>
         document.getElementById('upload-form').addEventListener('submit', function(event) {
             event.preventDefault();
-
+    
             var formData = new FormData(this);
-
-            fetch('/processpdf', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.downloadUrl) {
-                    var resultDiv = document.getElementById('result');
-                    var downloadLink = document.getElementById('download-link');
-
-                    downloadLink.href = data.downloadUrl;
-                    downloadLink.textContent = 'Download Now';
-                    resultDiv.style.display = 'block';
+            var xhr = new XMLHttpRequest();
+            var progressContainer = document.getElementById('progress-container');
+            var progressBar = document.getElementById('progress-bar');
+            var progressText = document.getElementById('progress-text');
+            var resultDiv = document.getElementById('result');
+            var downloadLink = document.getElementById('download-link');
+    
+            // Reset previous result and progress
+            resultDiv.style.display = 'none';
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+    
+            xhr.open('POST', '/processpdf', true);
+    
+            xhr.upload.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    var percentComplete = Math.round((event.loaded / event.total) * 100);
+                    progressBar.style.width = percentComplete + '%';
+                    progressText.textContent = percentComplete + '%';
+                }
+            };
+    
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.downloadUrl) {
+                        downloadLink.href = data.downloadUrl;
+                        downloadLink.textContent = 'Download Now';
+                        resultDiv.style.display = 'block';
+                    } else {
+                        alert('Error: Unable to process the file.');
+                    }
                 } else {
                     alert('Error: Unable to process the file.');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+                progressContainer.style.display = 'none';
+            };
+    
+            xhr.onerror = function() {
+                console.error('Error:', xhr.statusText);
                 alert('Error: Unable to process the file.');
-            });
+                progressContainer.style.display = 'none';
+            };
+    
+            xhr.send(formData);
+        });
+    
+        // Hide the result section and reset progress when a new file is selected
+        document.querySelector('input[type="file"]').addEventListener('change', function() {
+            var resultDiv = document.getElementById('result');
+            var progressContainer = document.getElementById('progress-container');
+            
+            resultDiv.style.display = 'none'; // Hide the result section
+            progressContainer.style.display = 'none'; // Hide the progress bar
         });
     </script>
     <style>
@@ -322,6 +359,28 @@
         .download-button:hover {
             background-color: #218838;
         }
+        #progress-container {
+    width: 100%;
+    background-color: #333;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 20px;
+    position: relative; /* To position the text inside the container */
+}
+
+#progress-bar {
+    height: 10px;
+    background-color: #00cc66;
+    transition: width 0.4s ease;
+}
+
+#progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+}
     </style>
 </body>
 </html>
