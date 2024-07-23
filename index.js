@@ -1,3 +1,23 @@
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const libre = require('libreoffice-convert');
+
+const app = express();
+const upload = multer({ dest: 'uploads/' });
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Route for the root URL to serve 'index.html'
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.post('/processpdf', upload.single('file'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ success: false, error: 'No file uploaded.' });
@@ -40,4 +60,10 @@ app.post('/processpdf', upload.single('file'), (req, res) => {
             });
         });
     });
+});
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
